@@ -19,7 +19,7 @@ jobs:
       shell: bash
       run: |
         cat <<EOF >> cookie.txt
-        ${{secrets.COOKIE_TEXT}} 
+        ${{secrets.COOKIE_TXT}} 
         EOF
         ls -la
     - name: Run
