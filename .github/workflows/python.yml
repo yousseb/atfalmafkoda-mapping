@@ -16,12 +16,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     - name: Create cookies file
-      run: |
-          echo "$COOKIE_TEXT" >> cookie.txt
-          ls -la
       shell: bash
-      env:
-        COOKIE_TEXT: ${{secrets.COOKIE_TEXT}} 
+      run: |
+        cat <<EOF >> cookie.txt
+        ${{secrets.COOKIE_TEXT}} 
+        EOF
+        ls -la
     - name: Run
       run: |
         python main.py
