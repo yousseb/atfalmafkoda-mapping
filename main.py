@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 
 from argparse import ArgumentParser, SUPPRESS
+from types import SimpleNamespace
 from typing import Iterator, Optional
 
-import facebook_scraper as fs
+from facebook_scraper import FacebookScraper, Post
 import logging as log
 import sys
 import re
@@ -13,7 +14,7 @@ from urllib.parse import urlparse, unquote
 import json
 from random import randint
 from time import sleep
-
+import requests
 
 log.basicConfig(format='[ %(levelname)s ] %(message)s', level=log.INFO, stream=sys.stdout)
 
@@ -21,8 +22,10 @@ log.basicConfig(format='[ %(levelname)s ] %(message)s', level=log.INFO, stream=s
 class Indexer:
     def __init__(self):
         self.map = {}
+        self.proxies = []
+        self.proxy_iter = None
 
-    def find_code(self, post: fs.Post) -> Optional[str]:
+    def find_code(self, post: Post) -> Optional[str]:
         lines = post['text'].split('\n')
         for line in lines:
             if any(map(line.__contains__, ['code', 'كود'])):
@@ -38,7 +41,29 @@ class Indexer:
         log.warning(f'Post has no code: {post}')
         return None
 
-    def build_index(self) -> Iterator[fs.Post]:
+    def get_proxies(self):
+        log.info("Getting proxies")
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+        r = requests.get('https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc&country=US&speed=medium&protocols=http%2Chttps', headers=headers)
+        json_proxies = json.loads(r.text, object_hook=lambda d: SimpleNamespace(**d))
+        self.proxies = json_proxies.data
+        self.proxy_iter = iter(self.proxies)
+        log.info(f"Proxies count: {len(self.proxies)}")
+
+    def get_next_proxy(self) -> str:
+        try:
+            proxy = next(self.proxy_iter)
+        except StopIteration:
+            self.proxy_iter = iter(self.proxies)
+            proxy = next(self.proxy_iter)
+        proxy_str = proxy.protocols[0] + '//' + proxy.ip + ':' + proxy.port
+
+    def build_index(self) -> Iterator[Post]:
+        self.get_proxies()
+        fs = FacebookScraper()
+        fs.set_user_agent('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36')
+
         gen = fs.get_posts(
             'atfalmafkoda',
             pages=999999,
@@ -53,11 +78,19 @@ class Indexer:
         )
         counter = 0
 
-        for post in gen:
-            counter = counter + 1
-            if counter % 9 == 0:
-                log.info("Sleeping for 30s in order not to be blocked")
-                sleep(30)
+        while True:
+            fs.set_proxy(self.get_next_proxy(), verify=True)
+
+            post = None
+            try:
+                post = next(gen)
+            except StopIteration:
+                break
+
+            # counter = counter + 1
+            # if counter % 9 == 0:
+            #     log.info("Sleeping for 30s in order not to be blocked")
+            #     sleep(30)
 
             code = self.find_code(post)
             post_images = post['images']
@@ -66,12 +99,9 @@ class Indexer:
                 code = "no-code"
 
             code_exists = False
-            try:
-                _ = self.map[code]
+            if code in self.map:
                 code_exists = True
                 log.info('Code was repeated - could be a repost')
-            except:
-                pass
 
             images = []
             for image in post_images:
