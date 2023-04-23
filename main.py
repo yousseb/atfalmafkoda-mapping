@@ -42,7 +42,7 @@ class Indexer:
         gen = fs.get_posts(
             'atfalmafkoda',
             pages=999999,
-            posts_per_page=999999,
+            posts_per_page=9,
             cookies='cookie.txt',
             options={"comments": False,
                      "reactors": False,
