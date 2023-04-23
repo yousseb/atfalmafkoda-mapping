@@ -46,6 +46,9 @@ class Indexer:
             cookies='cookie.txt',
             options={"comments": False,
                      "reactors": False,
+                     "allow_extra_requests": False,
+                     "remove_source": True,
+                     "extra_info": False,
                      "progress": False}
         )
         for post in gen:
