@@ -11,10 +11,11 @@ import re
 from pathlib import Path
 from urllib.parse import urlparse, unquote
 import json
+from random import randint
+from time import sleep
+
 
 log.basicConfig(format='[ %(levelname)s ] %(message)s', level=log.INFO, stream=sys.stdout)
-
-MAX_COMMENTS = 0
 
 
 class Indexer:
@@ -74,6 +75,8 @@ class Indexer:
                 self.map[code] = list(set(self.map[code]))  # Unique
             else:
                 self.map[code] = images
+
+            sleep(randint(1, 5))
 
         with open('map.json', 'w') as fp:
             json.dump(self.map, fp, indent=2)
