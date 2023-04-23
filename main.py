@@ -51,7 +51,14 @@ class Indexer:
                      "extra_info": False,
                      "progress": False}
         )
+        counter = 0
+
         for post in gen:
+            counter = counter + 1
+            if counter % 9 == 0:
+                log.info("Sleeping for 30s in order not to be blocked")
+                sleep(30)
+
             code = self.find_code(post)
             post_images = post['images']
 
@@ -79,7 +86,6 @@ class Indexer:
             else:
                 self.map[code] = images
 
-            sleep(randint(1, 5))
 
         with open('map.json', 'w') as fp:
             json.dump(self.map, fp, indent=2)
