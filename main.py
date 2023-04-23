@@ -51,8 +51,13 @@ class Indexer:
             code = self.find_code(post)
             post_images = post['images']
 
+            if code is None:
+                code = "no-code"
+
+            code_exists = False
             try:
                 _ = self.map[code]
+                code_exists = True
                 log.info('Code was repeated - could be a repost')
             except:
                 pass
@@ -64,8 +69,11 @@ class Indexer:
                 #cleaned_image = cleaned_image.split("?")[0]
                 images.append(cleaned_image)
 
-            self.map[code] = images
-            print(code)
+            if code_exists:
+                self.map[code] = self.map[code] + images
+                self.map[code] = list(set(self.map[code]))  # Unique
+            else:
+                self.map[code] = images
 
         with open('map.json', 'w') as fp:
             json.dump(self.map, fp, indent=2)
@@ -78,9 +86,6 @@ def build_argparser():
     args = parser.add_argument_group('Options')
     args.add_argument('-h', '--help', action='help', default=SUPPRESS, help='Show this help message and exit.')
     return parser
-
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
 
 
 if __name__ == '__main__':
