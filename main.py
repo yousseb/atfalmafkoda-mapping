@@ -40,8 +40,8 @@ class Indexer:
     def build_index(self) -> Iterator[fs.Post]:
         gen = fs.get_posts(
             'atfalmafkoda',
-            pages=2,
-            posts_per_page=2,
+            pages=999999,
+            posts_per_page=999999,
             cookies='cookie.txt',
             options={"comments": False,
                      "reactors": False,
