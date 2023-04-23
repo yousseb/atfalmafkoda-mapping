@@ -46,7 +46,7 @@ class Indexer:
             cookies='cookie.txt',
             options={"comments": False,
                      "reactors": False,
-                     "allow_extra_requests": False,
+                     "allow_extra_requests": True,
                      "remove_source": True,
                      "extra_info": False,
                      "progress": False}
