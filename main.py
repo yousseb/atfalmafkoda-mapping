@@ -41,7 +41,11 @@ class Indexer:
         gen = fs.get_posts(
             'atfalmafkoda',
             pages=2,
-            options={"comments": MAX_COMMENTS, "progress": True}
+            posts_per_page=2,
+            cookies='cookie.txt',
+            options={"comments": False,
+                     "reactors": False,
+                     "progress": False}
         )
         for post in gen:
             code = self.find_code(post)
