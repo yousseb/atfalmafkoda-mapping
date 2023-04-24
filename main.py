@@ -18,6 +18,7 @@ from random import randint
 from time import sleep
 import requests
 
+
 log.basicConfig(format='[ %(levelname)s ] %(message)s', level=log.INFO, stream=sys.stdout)
 
 
@@ -101,15 +102,15 @@ class Indexer:
         return proxy_str
 
     def build_index(self) -> Iterator[Post]:
-        self.fetch_proxies()
+        #self.fetch_proxies()
 
         fs = FacebookScraper()
         fs.set_user_agent(
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36')
-        proxy = self.get_next_proxy()
-        fs.requests_kwargs['timeout'] = 30
-        fs.set_proxy(proxy)
-        # fs.session.proxies.update({'http': proxy, 'https': proxy})
+        fs.requests_kwargs['timeout'] = 120
+        #proxy = self.get_next_proxy()
+        #fs.session.proxies.update({'http': proxy, 'https': proxy})
+        #fs.set_proxy(proxy)
 
         cookies = parse_cookie_file('cookie.txt')
         fs.session.cookies.update(cookies)
@@ -118,8 +119,8 @@ class Indexer:
 
         gen = fs.get_posts(
             'atfalmafkoda',
-            pages=999999,
-            posts_per_page=9,
+            pages=9999999,
+            posts_per_page=25,
             options={"comments": False,
                      "reactors": False,
                      "allow_extra_requests": True,
@@ -138,10 +139,11 @@ class Indexer:
 
             counter = counter + 1
             if counter % 9 == 0:
-                log.info("Switching proxies in order not to be blocked")
-                proxy = self.get_next_proxy()
-                fs.set_proxy(proxy)
+                pass
+                # log.info("Switching proxies in order not to be blocked")
+                # proxy = self.get_next_proxy()
                 # fs.session.proxies.update({'http': proxy, 'https': proxy})
+                # fs.set_proxy(proxy)
 
             code = self.find_code(post)
             post_images = post['images']
